@@ -1,30 +1,30 @@
 {
   "schemaVersion": 1,
-  "id": "example",
+  "id": "sirens",
   "version": "${version}",
 
-  "name": "Example",
-  "description": "A server-side mod template",
+  "name": "Sirens",
+  "description": "A server-side mod",
   "authors": [
     "BlazeCode",
     "Cosmix"
   ],
   "contact": {
     "homepage": "https://github.com/BlazeCodeNet",
-    "sources": "https://github.com/BlazeCodeNet/fabric-template"
+    "sources": "https://github.com/BlazeCodeNet/SirensMod"
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/sirens/icon.png",
 
   "environment": "server",
   "entrypoints": {
     "server": [
-      "net.blazecode.example.ExampleMod"
+      "net.blazecode.sirens.SirensMod"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "sirens.mixins.json"
   ],
 
   "depends": {

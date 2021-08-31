@@ -1,24 +1,33 @@
-package net.blazecode.example;
+package net.blazecode.sirens;
 
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
+import net.blazecode.sirens.data.commands.MineCommand;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 
 @Environment( EnvType.SERVER )
-public class ExampleMod implements DedicatedServerModInitializer
+public class SirensMod implements DedicatedServerModInitializer
 {
-
-	public static final String MODID = "example";
+	public static final String MODID = "sirens";
 
 	@Override
 	public void onInitializeServer( )
 	{
 		AutoConfig.register(ModConfig.class, JanksonConfigSerializer::new);
+
+		CommandRegistrationCallback.EVENT.register( (dispatcher, dedicated) ->
+		{
+			if(dedicated)
+			{
+				MineCommand.register(dispatcher);
+			}
+		});
 	}
 
 	public static ModConfig getConfig()
