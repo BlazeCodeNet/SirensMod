@@ -61,6 +61,15 @@ public class GlobalSirensData extends PersistentState
         markDirty();
     }
 
+    public void removeMine(SirensMineData mine)
+    {
+        if(mineDataList.contains(mine))
+        {
+            mineDataList.remove(mine);
+            markDirty();
+        }
+    }
+
     public SirensMineData getMine(String name)
     {
         for(SirensMineData mineData : mineDataList)

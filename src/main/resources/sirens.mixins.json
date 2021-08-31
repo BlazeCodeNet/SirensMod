@@ -4,6 +4,7 @@
   "package": "net.blazecode.sirens.mixins",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "ServerWorldMixin"
   ],
   "client": [
   ],

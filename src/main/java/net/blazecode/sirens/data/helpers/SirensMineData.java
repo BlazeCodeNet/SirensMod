@@ -4,10 +4,8 @@ import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
+import net.minecraft.block.Blocks;
+import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
@@ -15,12 +13,8 @@ import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SirensMineData
 {
@@ -31,7 +25,7 @@ public class SirensMineData
 
         name = "NULL";
 
-        blockList = new ArrayList<>();
+        blockList = new HashMap<>();
     }
 
     public void tick(MinecraftServer server)
@@ -43,15 +37,18 @@ public class SirensMineData
         Iterator blockIterator = BlockPos.iterate(range.getMinX(), range.getMinY(), range.getMinZ(), range.getMaxX(), range.getMaxY(), range.getMaxZ()).iterator();
 
         BlockPos curPos;
+
+        List<Block> rawList = getBlockList();
+
         while(blockIterator.hasNext())
         {
             curPos = (BlockPos) blockIterator.next();
 
             BlockState state = world.getBlockState(curPos);
-            if(state.isAir())
+            if(state.isAir() || ( state.getBlock() != Blocks.BEDROCK && state.getBlock() != Blocks.LADDER ))
             {
-                int blIndex = world.random.nextInt(blockList.size());
-                world.setBlockState(curPos, blockList.get(blIndex).getDefaultState());
+                int blIndex = world.random.nextInt(rawList.size());
+                world.setBlockState(curPos, rawList.get(blIndex).getDefaultState());
             }
         }
     }
@@ -63,8 +60,8 @@ public class SirensMineData
         // Corners
         NbtCompound cornersTag = tag.getCompound("corners");
 
-        NbtCompound cornerOneTag = tag.getCompound("cornerOne");
-        NbtCompound cornerTwoTag = tag.getCompound("cornerTwo");
+        NbtCompound cornerOneTag = cornersTag.getCompound("cornerOne");
+        NbtCompound cornerTwoTag = cornersTag.getCompound("cornerTwo");
 
         BlockPos cornerOne = NbtHelper.toBlockPos(cornerOneTag);
         BlockPos cornerTwo = NbtHelper.toBlockPos(cornerTwoTag);
@@ -78,16 +75,28 @@ public class SirensMineData
         mineData.setName(tag.getString("name"));
 
         // Block List
-        NbtList list = tag.getList("block_list", NbtType.STRING);
+        NbtList list = tag.getList("block_list", NbtType.COMPOUND);
 
-        List<Block> blockList = new ArrayList<>();
-        list.forEach( tag1 ->
+        HashMap<Block, Integer> blockList = new HashMap<>();
+        for(NbtElement nbtElement : list)
         {
-            Identifier ident = Identifier.tryParse(tag1.asString());
+            NbtCompound blockEntryTag = (NbtCompound)nbtElement;
+
+            int count = blockEntryTag.getInt("block_count");
+
+            Identifier ident = Identifier.tryParse(blockEntryTag.getString("block_id"));
             Block blk = Registry.BLOCK.get(ident);
 
-            blockList.add(blk);
-        });
+            if(blockList.containsKey(blk))
+            {
+                int oldCount = blockList.get(blk);
+                blockList.replace(blk, oldCount + count);
+            }
+            else
+            {
+                blockList.put(blk, count);
+            }
+        }
 
         mineData.setBlockList(blockList);
 
@@ -107,16 +116,21 @@ public class SirensMineData
         tag.put("corners", cornersTag);
 
         // World
-        tag.putString("world", worldIdentifier.getPath());
+        tag.putString("world", worldIdentifier.toString());
 
         // Name
         tag.putString("name", name);
 
         // Block List
         NbtList list = new NbtList();
-        for(Block b : getBlockList())
+        for(Block b : blockList.keySet())
         {
-            list.add(NbtString.of(Registry.BLOCK.getId(b).getPath()));
+            NbtCompound blockEntryTag = new NbtCompound();
+
+            blockEntryTag.putInt("block_count", blockList.get(b));
+            blockEntryTag.putString("block_id", Registry.BLOCK.getId(b).toString());
+
+            list.add(blockEntryTag);
         }
 
         tag.put("block_list", list);
@@ -133,7 +147,7 @@ public class SirensMineData
     {
         this.name = name;
     }
-    public void setBlockList(List<Block> blockList)
+    public void setBlockList(HashMap<Block, Integer> blockList)
     {
         this.blockList = blockList;
     }
@@ -142,10 +156,15 @@ public class SirensMineData
         this.worldIdentifier = world;
     }
 
-    public Map<BlockPos, BlockPos> getCorners()
+    public BlockPos getPosOne()
     {
-        return Map.of(posOne, posTwo);
+        return posOne;
     }
+    public BlockPos getPostTwo()
+    {
+        return posTwo;
+    }
+
     public Identifier getWorldIdentifier()
     {
         return worldIdentifier;
@@ -156,7 +175,18 @@ public class SirensMineData
     }
     public List<Block> getBlockList()
     {
-        return blockList;
+        List<Block> rawBlockList = new ArrayList<>();
+
+        for(Block b : blockList.keySet())
+        {
+            int count = blockList.get(b);
+            for(int i = 0; i < count; i++)
+            {
+                rawBlockList.add(b);
+            }
+        }
+
+        return rawBlockList;
     }
 
     private BlockPos posOne;
@@ -166,5 +196,5 @@ public class SirensMineData
 
     private String name;
 
-    private List<Block> blockList;
+    private HashMap<Block, Integer> blockList;
 }
