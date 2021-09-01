@@ -100,7 +100,7 @@ public class MineCommand
         mineData.setWorldIdentifier(srvPlr.getServerWorld().getRegistryKey().getValue());
         HashMap<Block, Integer> blockList = new HashMap<>();
 
-        BlockBox range = BlockBox.create(mineData.getPosOne(), mineData.getPostTwo());
+        BlockBox range = BlockBox.create(mineData.getPosOne(), mineData.getPosTwo());
 
         Iterator blockIterator = BlockPos.iterate(range.getMinX(), range.getMinY(), range.getMinZ(), range.getMaxX(), range.getMaxY(), range.getMaxZ()).iterator();
 

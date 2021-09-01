@@ -160,7 +160,7 @@ public class SirensMineData
     {
         return posOne;
     }
-    public BlockPos getPostTwo()
+    public BlockPos getPosTwo()
     {
         return posTwo;
     }
